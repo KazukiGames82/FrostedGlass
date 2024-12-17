@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="Plugin.cpp">
+      <Filter>Plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="StdAfx.cpp">
+      <Filter>StdAfx</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Plugin.h">
+      <Filter>Plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="version.h">
+      <Filter>Version</Filter>
+    </ClInclude>
+    <ClInclude Include="StdAfx.h">
+      <Filter>StdAfx</Filter>
+    </ClInclude>
+    <ClInclude Include="UNUSED.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Plugin">
+      <UniqueIdentifier>{93cb7932-b89f-45dd-bd63-887906434597}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Version">
+      <UniqueIdentifier>{daf18e7a-54f5-4da7-8d7f-7285f0207210}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Version\rc">
+      <UniqueIdentifier>{fc7b1119-0e04-43f9-bf96-60257035f483}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="StdAfx">
+      <UniqueIdentifier>{c7fcd913-54fd-4640-96d9-54398ccf3ed4}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Plugin.rc">
+      <Filter>Version\rc</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>
