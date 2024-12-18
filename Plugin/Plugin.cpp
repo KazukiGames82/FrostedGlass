@@ -2,25 +2,6 @@
 #include "StdAfx.h"
 #include "Plugin.h"
 
-/**********************************************
-*            CHANGELOG 1.1.2 - 1.2.0          *
-**********************************************/
-/*
-*	Measure:
-*		- Added RGBA compatibility for "Backdrop" option.
-*		- Added "Screen" and "ScreenLuminance" to "Effect" option.
-*		- Added "BorderColor" option.
-*		- Added "IgnoreWarnings" option.
-*	Plugin:
-*		- Fixed memory leak.
-*		- Reduced compilation time.
-*		- Reduced memory usage.
-*		- 
-*		-
-*
-*
-*/
-
 /**************************************
 *              VARIABLES              *
 **************************************/
