@@ -121,7 +121,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;PLUGINEMPTY_EXPORTS;%(PreprocessorDefinitions);PROJECT_NAME="$(ProjectName)"</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <LanguageStandard>Default</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -133,9 +133,8 @@
       <Command>RD /S /Q "$(OutDir)"</Command>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>taskkill /F /IM Rainmeter.exe
-xcopy /R /Y "$(OutputPath)$(TargetFileName)" "%appdata%/Rainmeter/Plugins/$(TargetFileName)"
-%appdata%/Rainmeter/Rainmeter.exe</Command>
+      <Command>
+      </Command>
       <Message>Copies plugin into rainmeter directory</Message>
     </PostBuildEvent>
     <CustomBuildStep>

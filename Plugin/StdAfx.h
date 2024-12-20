@@ -13,6 +13,7 @@
 #include <sstream>
 #include <iomanip>
 #include <regex>
+#include <unordered_map>
 
 // Rainmeter API
 #include "../API/RainmeterAPI.h"
