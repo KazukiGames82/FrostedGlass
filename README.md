@@ -13,4 +13,4 @@ Install the skin by double-clicking the .rmskin file and follow the steps in the
 
 ### Optional
 
-You can also download the .zip file if you want to bundle the plugin in your skin.
+You can also download the .zip file if you want to bundle the plugin in your skin, testing ^^
