@@ -1,6 +1,6 @@
-#define PLUGIN_VERSION "1.2.0"
-#define PLUGIN_AUTHOR "theAzack9, khanhas, Meti0X7CB, KazukiGames82"
-#define PLUGIN_YEAR 2018
+#define PLUGIN_VERSION "1.2.2.0"
+#define PLUGIN_AUTHOR "theAzack9, khanhas, Meti0X7CB, AmberW, KazukiGames82"
+#define PLUGIN_YEAR 2025
 // Has to be the same as the project name!
 #define PLUGIN_NAME "FrostedGlass"
 // This is the path relative to root directory (where build.bat is placed)
