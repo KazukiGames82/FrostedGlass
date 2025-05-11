@@ -90,22 +90,7 @@ namespace FrostedGlass
             DEFAULT,
             BLUR_TOGGLE,
             BLUR_ENABLE,
-            BLUR_DISABLE,
-            //BACKDROP_TOGGLE,
-            //BACKDROP_LIGHTMODE,
-            //BACKDROP_DARKMODE,
-            //CORNER_TOGGLE,
-            //CORNER_ENABLE,
-            //CORNER_DISABLE,
-            //BORDER_TOGGLE,
-            //BORDER_ENABLE,
-            //BORDER_DISABLE,
-            //DARK_MODE_TOGGLE,
-            //DARK_MODE_ENABLE,
-            //DARK_MODE_DISABLE,
-            //MICA_FOCUS_TOOGLE,
-            //MICA_FOCUS_ENABLE,
-            //MICA_FOCUS_DISABLE
+            BLUR_DISABLE
         };
     }
 
@@ -172,22 +157,7 @@ namespace FrostedGlass
         {
             {L"toggleblur", Types::COMMAND::BLUR_TOGGLE},
             {L"enableblur", Types::COMMAND::BLUR_ENABLE},
-            {L"disableblur", Types::COMMAND::BLUR_DISABLE},
-            //{L"togglebackdrop", Types::COMMAND::BACKDROP::TOGGLE},
-            //{L"lightbackdrop", Types::COMMAND::BACKDROP::LIGHTMODE},
-            //{L"darkbackdrop", Types::COMMAND::BACKDROP::DARKMODE},
-            //{L"togglecorner", Types::COMMAND::CORNER::TOGGLE},
-            //{L"enablecorner", Types::COMMAND::CORNER::ENABLE},
-            //{L"disablecorner", Types::COMMAND::CORNER::DISABLE},
-            //{L"toggleborders", Types::COMMAND::BORDER_TOGGLE},
-            //{L"enableborders", Types::COMMAND::BORDER_ENABLE},
-            //{L"disableborders", Types::COMMAND::BORDER_DISABLE},
-            //{L"togglemode", Types::COMMAND::DARK_MODE_TOGGLE},
-            //{L"lightmode", Types::COMMAND::DARK_MODE_ENABLE},
-            //{L"darkmode", Types::COMMAND::DARK_MODE_DISABLE},
-            //{L"togglefocus", Types::COMMAND::MICA::FOCUS_TOOGLE},
-            //{L"enablefocus", Types::COMMAND::MICA::FOCUS_ENABLE},
-            //{L"disablefocus", Types::COMMAND::MICA::FOCUS_DISABLE},
+            {L"disableblur", Types::COMMAND::BLUR_DISABLE}
         };
     }
 
