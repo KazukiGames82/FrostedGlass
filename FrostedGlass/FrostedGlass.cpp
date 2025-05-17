@@ -66,115 +66,12 @@ PLUGIN_EXPORT void Finalize(void* data)
 //              MEASURE              //
 //-----------------------------------//
 
-wstring Measure::ToWstring(const uint8_t _Value) noexcept
-{
-    //return std::to_wstring(static_cast<unsigned int>(_Value));
-    wchar_t buffer[4];
-    swprintf_s(buffer, L"%u", _Value);
-    return buffer;
-}
-
-void Measure::ToLowerCase(wstring& _Input) noexcept
-{
-    //std::transform(_Input.begin(), _Input.end(), _Input.begin(), std::tolower);
-    std::transform(_Input.begin(), _Input.end(), _Input.begin(),
-                   [](wchar_t c) { return std::towlower(c); });
-}
-
-void Measure::ToRemoveSpace(wstring& _Input) noexcept
-{
-    _Input.erase(_Input.begin(),
-                 std::find_if_not(_Input.begin(), _Input.end(),
-                                  [](wchar_t c) { return std::iswspace(c); }));
-}
-
-bool Measure::Evaluate(wstring& _Input, const wstring& _Search) noexcept
-{
-    //ToRemoveSpace(_Input);
-    //
-    //const size_t pos = _Search.size();
-    //if (_Input.substr(0, pos) != _Search) return false;
-    //
-    //_Input.erase(0, pos);
-    //return true;
-
-    ToRemoveSpace(_Input);
-
-    const size_t pos = _Search.size();
-    if (_Input.compare(0, pos, _Search) != 0) return false;
-
-    _Input.erase(0, pos);
-    return true;
-}
-
-
-
-uint8_t Measure::ClampColor(const int _Value) noexcept
-{
-    return static_cast<uint8_t>((_Value >= 255) ? 255 : ((_Value <= 0) ? 0 : _Value));
-}
-
-bool Measure::IsValidHexColor(wstring& _Color) noexcept
-{
-    if (_Color[0] == L'#')
-        _Color.erase(0, 1);
-
-    const size_t length = _Color.length();
-    if (length != 6 && length != 8) return false;
-
-    //return std::all_of(_Color.begin(), _Color.end(), std::iswxdigit);
-
-    return std::all_of(_Color.begin(), _Color.end(), [](wchar_t c) { return std::iswxdigit(c); });
-}
-
-bool Measure::IsValidDecColor(wstring& _Color) noexcept
-{
-    int channels[4] = { 0 };
-    const int count = swscanf_s(_Color.c_str(), L"%d,%d,%d,%d", &channels[0], &channels[1], &channels[2], &channels[3]);
-
-    if (count < 3) return false;
-
-    //if (swscanf_s(_Color.c_str(), L"%d,%d,%d,%d", &channels[0], &channels[1], &channels[2], &channels[3]) < 3) return false;
-
-    wchar_t hexColor[9];
-    swprintf_s(hexColor, L"%02X%02X%02X%02X", ClampColor(channels[0]), ClampColor(channels[1]), ClampColor(channels[2]), ClampColor(channels[3]));
-    _Color = hexColor;
-    return true;
-}
-
-
-wstring Measure::GetColor(wstring& _Color) noexcept
-{
-    if (IsValidHexColor(_Color) || IsValidDecColor(_Color)) return _Color;
-
-    this->m_IsColorValid = false;
-    return L"000000";
-}
-
-uint32_t Measure::SetColor(wstring& _Color) noexcept
-{
-    if (_Color.size() == 6)
-        _Color += L"00";
-
-    const uint32_t _HexColor = std::stoul(_Color, nullptr, 16);
-    uint32_t postColor (((_HexColor >> 24) & 0xFF) |
-                        ((_HexColor >> 8)  & 0xFF00) |
-                        ((_HexColor << 8)  & 0xFF0000) |
-                        ((_HexColor << 24) & 0xFF000000));
-
-    if (postColor <= 0) return 0x000001;
-
-    return postColor;
-}
-
-
-
 template<typename A>
 A Measure::SetValueA(const std::unordered_map<wstring, A>& _Map, wstring& _Value, const A _DefValue)
 {
     if (_Value.empty()) return _DefValue;
 
-    ToLowerCase(_Value);
+    API::StringHelper::ToLowerCase(_Value);
 
     auto it = _Map.find(_Value);
     if (it != _Map.end()) return it->second;
@@ -187,12 +84,12 @@ B Measure::SetValueB(const std::unordered_map<wstring, B>& _Map, wstring& _Value
 {
     if (_Value.empty()) return _DefValue;
 
-    ToLowerCase(_Value);
+    API::StringHelper::ToLowerCase(_Value);
 
     auto it = _Map.find(_Value);
     if (it != _Map.end()) return it->second;
 
-    return static_cast<B>(SetColor(GetColor(_Value)));
+    return static_cast<B>(API::ColorHelper::SetColor(API::ColorHelper::GetColor(this, _Value)));
 }
 
 
@@ -213,7 +110,7 @@ void Measure::GetAccent()
 
     if (h_ValueInt8 > 0)
     {
-        wstring h_ValueConverted = ToWstring(h_ValueInt8);
+        wstring h_ValueConverted = API::StringHelper::ToWstring(h_ValueInt8);
         m_Accent[0] = SetValueA(Maps::AccentMap, h_ValueConverted, ACCENT::BLUR);
         m_Mica[0] = SetValueA(Maps::MicaMap, h_ValueConverted, MICA::DEFAULT);
         return;
@@ -230,7 +127,7 @@ void Measure::GetEffect()
 
     if (h_ValueInt8 > 0)
     {
-        m_Effect[0] = SetValueA(Maps::EffectMap, ToWstring(h_ValueInt8), EFFECT::DEFAULT);
+        m_Effect[0] = SetValueA(Maps::EffectMap, API::StringHelper::ToWstring(h_ValueInt8), EFFECT::DEFAULT);
         return;
     }
 
@@ -244,24 +141,24 @@ void Measure::GetShadow()
 
     if (h_ValueString.empty()) return;
 
-    ToLowerCase(h_ValueString);
+    API::StringHelper::ToLowerCase(h_ValueString);
     while (!h_ValueString.empty())
     {
-        if (Evaluate(h_ValueString, L"top")) m_Shadow[0] = static_cast<SHADOW>(static_cast<uint16_t>(m_Shadow[0]) | static_cast<uint16_t>(SHADOW::TOP));
-        if (Evaluate(h_ValueString, L"left")) m_Shadow[0] = static_cast<SHADOW>(static_cast<uint16_t>(m_Shadow[0]) | static_cast<uint16_t>(SHADOW::LEFT));
-        if (Evaluate(h_ValueString, L"right")) m_Shadow[0] = static_cast<SHADOW>(static_cast<uint16_t>(m_Shadow[0]) | static_cast<uint16_t>(SHADOW::RIGHT));
-        if (Evaluate(h_ValueString, L"bottom")) m_Shadow[0] = static_cast<SHADOW>(static_cast<uint16_t>(m_Shadow[0]) | static_cast<uint16_t>(SHADOW::BOTTOM));
-        if (Evaluate(h_ValueString, L"none"))
+        if (API::StringHelper::Evaluate(h_ValueString, L"top")) m_Shadow[0] = static_cast<SHADOW>(static_cast<uint16_t>(m_Shadow[0]) | static_cast<uint16_t>(SHADOW::TOP));
+        if (API::StringHelper::Evaluate(h_ValueString, L"left")) m_Shadow[0] = static_cast<SHADOW>(static_cast<uint16_t>(m_Shadow[0]) | static_cast<uint16_t>(SHADOW::LEFT));
+        if (API::StringHelper::Evaluate(h_ValueString, L"right")) m_Shadow[0] = static_cast<SHADOW>(static_cast<uint16_t>(m_Shadow[0]) | static_cast<uint16_t>(SHADOW::RIGHT));
+        if (API::StringHelper::Evaluate(h_ValueString, L"bottom")) m_Shadow[0] = static_cast<SHADOW>(static_cast<uint16_t>(m_Shadow[0]) | static_cast<uint16_t>(SHADOW::BOTTOM));
+        if (API::StringHelper::Evaluate(h_ValueString, L"none"))
         {
             m_Shadow[0] = SHADOW::DEFAULT;
             break;
         }
-        if (Evaluate(h_ValueString, L"all"))
+        if (API::StringHelper::Evaluate(h_ValueString, L"all"))
         {
             m_Shadow[0] = SHADOW::ALL;
             break;
         }
-        if (!h_ValueString.empty() && !Evaluate(h_ValueString, L"|"))
+        if (!h_ValueString.empty() && !API::StringHelper::Evaluate(h_ValueString, L"|"))
         {
             m_IsShadowValid = false;
             m_Shadow[0] = SHADOW::DEFAULT;
@@ -282,7 +179,7 @@ void Measure::GetCorner()
 
     if (h_ValueInt8 > 0)
     {
-        m_Corner[0] = SetValueA(Maps::CornerMap, ToWstring(h_ValueInt8), CORNER::DEFAULT);
+        m_Corner[0] = SetValueA(Maps::CornerMap, API::StringHelper::ToWstring(h_ValueInt8), CORNER::DEFAULT);
         return;
     }
 
@@ -312,7 +209,7 @@ void Measure::GetStrokeColor()
         return;        
     }
 
-    m_StrokeColor[0] = static_cast<STROKECOLOR>(SetColor(GetColor(h_ValueString)) & 0x00FFFFFF);
+    m_StrokeColor[0] = static_cast<STROKECOLOR>(API::ColorHelper::SetColor(API::ColorHelper::GetColor(this, h_ValueString)) & 0x00FFFFFF);
 }
 
 
@@ -570,4 +467,9 @@ void Measure::Finalize()
 
     API::InstanceState::Finalize();
     this->~Measure();
+}
+
+void Measure::setValidColor(const bool _IsValid)
+{
+    this->m_IsColorValid = _IsValid;
 }

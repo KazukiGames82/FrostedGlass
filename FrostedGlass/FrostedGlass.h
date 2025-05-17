@@ -28,23 +28,12 @@ private:
     bool m_IsBorderVisible[2] = { false };
 
     ACCENT m_Accent[3] = { ACCENT::DEFAULT };
-    MICA m_Mica[3] = { MICA::DEFAULT };
     EFFECT m_Effect[2] = { EFFECT::DEFAULT };
     SHADOW m_Shadow[2] = { SHADOW::DEFAULT };
     BACKDROP m_Backdrop[2] = { BACKDROP::DEFAULT };
+    MICA m_Mica[3] = { MICA::DEFAULT };
     CORNER m_Corner[3] = { CORNER::DEFAULT };
     STROKECOLOR m_StrokeColor[2] = { STROKECOLOR::VISIBLE };
-
-    wstring ToWstring(const uint8_t _Value) noexcept;
-    void ToLowerCase(wstring& _Input) noexcept;
-    void ToRemoveSpace(wstring& _Input) noexcept;
-    bool Evaluate(wstring& _Input, const wstring& _Search) noexcept;
-
-    uint8_t ClampColor(const int _Value) noexcept;
-    bool IsValidHexColor(wstring& _Color) noexcept;
-    bool IsValidDecColor(wstring& _Color) noexcept;
-    wstring GetColor(wstring& _Color) noexcept;
-    uint32_t SetColor(wstring& _Color) noexcept;
 
     template<typename A>
     A SetValueA(const std::unordered_map<wstring, A>& _Map, wstring& _Value, const A _DefValue);
@@ -76,6 +65,8 @@ public:
     void Update() const;
     void ExecuteBang(LPCWSTR args);
     void Finalize();
+
+    void setValidColor(const bool _IsValid);
 };
 
 //-----------------------------------//
