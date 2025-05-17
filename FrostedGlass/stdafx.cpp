@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "FrostedGlass.h"
 
 namespace FrostedGlass
 {
@@ -54,37 +55,64 @@ namespace FrostedGlass
 
         uint32_t InstanceState::instances = 0;
 
-        pSetWindowCompositionAttribute InstanceState::SetWindowCompositionAttribute = nullptr;
-        pDwmSetWindowAttribute InstanceState::SetWindowAttribute = nullptr;
+        PSET_COMPOSITION InstanceState::SetWindowCompositionAttribute = nullptr;
+        PSET_ATTRIBUTE InstanceState::SetWindowAttribute = nullptr;
+
+        // ----------------------------------------------------------- //
+
+        void InstanceState::LoadUser32() noexcept
+        {
+            User32Module = LoadLibrary(TEXT("user32.dll"));
+
+            if (User32Module)
+            {
+                RmLog(LOG_DEBUG, L"FrostedGlass: Loaded User32.dll Module...");
+                DisableThreadLibraryCalls(User32Module);
+                SetWindowCompositionAttribute = reinterpret_cast<PSET_COMPOSITION>(GetProcAddress(User32Module, "SetWindowCompositionAttribute"));
+            }
+            if (!SetWindowCompositionAttribute) RmLog(LOG_ERROR, L"FrostedGlass: Could not load SetWindowCompositionAttribute from user32.dll");
+        }
+
+        void InstanceState::UnloadUser32() noexcept
+        {
+            if (!IsUser32Loaded()) return;
+
+            RmLog(LOG_DEBUG, L"FrostedGlass: Unloaded User32.dll Module...");
+            FreeLibrary(User32Module);
+            SetWindowCompositionAttribute = nullptr;
+        }
+
+        void InstanceState::LoadDwmapi() noexcept
+        {
+            DwmapiModule = LoadLibrary(TEXT("DWMAPI.dll"));
+
+            if (DwmapiModule)
+            {
+                RmLog(LOG_DEBUG, L"FrostedGlass: Loaded Dwmapi.dll Module...");
+                DisableThreadLibraryCalls(DwmapiModule);
+                SetWindowAttribute = reinterpret_cast<PSET_ATTRIBUTE>(GetProcAddress(DwmapiModule, "DwmSetWindowAttribute"));
+            }
+            if (!SetWindowAttribute) RmLog(LOG_ERROR, L"FrostedGlass: Could not load DwmSetWindowAttribute from DWMAPI.dll");
+        }
+
+        void InstanceState::UnloadDwmapi() noexcept
+        {
+            if (!IsDwmapiLoaded()) return;
+         
+            RmLog(LOG_DEBUG, L"FrostedGlass: Unloaded Dwmapi.dll Module...");
+            FreeLibrary(DwmapiModule);
+            SetWindowAttribute = nullptr;
+        }
+
+        // ------------------------------ //
 
         void InstanceState::Initialize() noexcept
         {
             if (!isInitialized)
             {
                 isInitialized = true;
-                if (User32Module == nullptr && SetWindowCompositionAttribute == nullptr)
-                {
-                    User32Module = LoadLibrary(TEXT("user32.dll"));
-                    if (User32Module)
-                    {
-                        RmLog(LOG_DEBUG, L"FrostedGlass: Loaded User32.dll Module...");
-                        DisableThreadLibraryCalls(User32Module);
-                        SetWindowCompositionAttribute = reinterpret_cast<pSetWindowCompositionAttribute>(GetProcAddress(User32Module, "SetWindowCompositionAttribute"));
-                    }
-                    if (!SetWindowCompositionAttribute) RmLog(LOG_ERROR, L"FrostedGlass: Could not load SetWindowCompositionAttribute from user32.dll");
-                }
-
-                if (DwmapiModule == nullptr && SetWindowAttribute == nullptr)
-                {
-                    DwmapiModule = LoadLibrary(TEXT("DWMAPI.dll"));
-                    if (DwmapiModule)
-                    {
-                        RmLog(LOG_DEBUG, L"FrostedGlass: Loaded Dwmapi.dll Module...");
-                        DisableThreadLibraryCalls(DwmapiModule);
-                        SetWindowAttribute = reinterpret_cast<pDwmSetWindowAttribute>(GetProcAddress(DwmapiModule, "DwmSetWindowAttribute"));
-                    }
-                    if (!SetWindowAttribute) RmLog(LOG_ERROR, L"FrostedGlass: Could not load DwmSetWindowAttribute from DWMAPI.dll");
-                }
+                LoadUser32();
+                LoadDwmapi();
             }
             ++instances;
         }
@@ -104,20 +132,113 @@ namespace FrostedGlass
             if (--instances > 0) return;
 
             isInitialized = false;
-
-            if (User32Module)
-            {
-                RmLog(LOG_DEBUG, L"FrostedGlass: Unloading User32.dll Module...");
-                FreeLibrary(User32Module);
-                SetWindowCompositionAttribute = nullptr;
-            }
-            if (DwmapiModule)
-            {
-                RmLog(LOG_DEBUG, L"FrostedGlass: Unloading Dwmapi.dll Module...");
-                FreeLibrary(DwmapiModule);
-                SetWindowAttribute = nullptr;
-            }
+            UnloadUser32();
+            UnloadDwmapi();
         }
+
+        // ----------------------------------------------------------- //
+
+        wstring StringHelper::ToWstring(const uint8_t _Value) noexcept
+        {
+            wchar_t buffer[4];
+            swprintf_s(buffer, L"%u", _Value);
+            return buffer;
+        }
+
+        void StringHelper::ToLowerCase(wstring& _Input) noexcept
+        {
+            std::transform(_Input.begin(), _Input.end(), _Input.begin(),
+                           [](wchar_t c) { return std::towlower(c); });
+        }
+
+        void StringHelper::ToRemoveSpace(wstring& _Input) noexcept
+        {
+            _Input.erase(_Input.begin(),
+                         std::find_if_not(_Input.begin(), _Input.end(),
+                                          [](wchar_t c) { return std::iswspace(c); }));
+        }
+
+        bool StringHelper::Evaluate(wstring& _Input, const wstring& _Search) noexcept
+        {
+            //ToRemoveSpace(_Input);
+            //
+            //const size_t pos = _Search.size();
+            //if (_Input.substr(0, pos) != _Search) return false;
+            //
+            //_Input.erase(0, pos);
+            //return true;
+
+            ToRemoveSpace(_Input);
+
+            const size_t pos = _Search.size();
+            if (_Input.compare(0, pos, _Search) != 0) return false;
+
+            _Input.erase(0, pos);
+            return true;
+        }
+
+        // ----------------------------------------------------------- //
+
+        uint8_t ColorHelper::ClampColor(const int _Value) noexcept
+        {
+            return static_cast<uint8_t>((_Value >= 255) ? 255 : ((_Value <= 0) ? 0 : _Value));
+        }
+
+        bool ColorHelper::IsValidHexColor(wstring& _Color) noexcept
+        {
+            if (_Color[0] == L'#')
+                _Color.erase(0, 1);
+
+            const size_t length = _Color.length();
+            if (length != 6 && length != 8) return false;
+
+            //return std::all_of(_Color.begin(), _Color.end(), std::iswxdigit);
+
+            return std::all_of(_Color.begin(), _Color.end(), [](wchar_t c) { return std::iswxdigit(c); });
+        }
+
+        bool ColorHelper::IsValidDecColor(wstring& _Color) noexcept
+        {
+            int channels[4] = { 0 };
+            const int count = swscanf_s(_Color.c_str(), L"%d,%d,%d,%d", &channels[0], &channels[1], &channels[2], &channels[3]);
+
+            if (count < 3) return false;
+
+            //if (swscanf_s(_Color.c_str(), L"%d,%d,%d,%d", &channels[0], &channels[1], &channels[2], &channels[3]) < 3) return false;
+
+            wchar_t hexColor[9];
+            swprintf_s(hexColor, L"%02X%02X%02X%02X", ClampColor(channels[0]), ClampColor(channels[1]), ClampColor(channels[2]), ClampColor(channels[3]));
+            _Color = hexColor;
+            return true;
+        }
+
+        // ------------------------------ //
+
+        wstring ColorHelper::GetColor(Measure* _Measure, wstring& _Color) noexcept
+        {
+            if (API::ColorHelper::IsValidHexColor(_Color) || API::ColorHelper::IsValidDecColor(_Color)) return _Color;
+
+            _Measure->setValidColor(false);
+            return L"000000";
+        }
+
+        uint32_t ColorHelper::SetColor(wstring& _Color) noexcept
+        {
+            if (_Color.size() == 6)
+                _Color += L"00";
+
+            const uint32_t _HexColor = std::stoul(_Color, nullptr, 16);
+            uint32_t postColor(((_HexColor >> 24) & 0xFF) |
+                               ((_HexColor >> 8) & 0xFF00) |
+                               ((_HexColor << 8) & 0xFF0000) |
+                               ((_HexColor << 24) & 0xFF000000));
+
+            if (postColor <= 0) return 0x000001;
+
+            return postColor;
+        }
+
+        // ----------------------------------------------------------- //
 
         void WindowStyler::SetMargin(HWND _Hwnd, int8_t _Margin) noexcept
         {
@@ -134,6 +255,8 @@ namespace FrostedGlass
         {
             InstanceState::SetWindowAttribute(_Hwnd, _Attribute, &_Value, sizeof(_Value));
         }
+
+        // ------------------------------ //
 
         void WindowStyler::SetAccent(HWND _Hwnd, const Types::ACCENT _Accent, const Types::EFFECT _Effect, const Types::SHADOW _Shadow, const Types::BACKDROP _Backdrop) noexcept
         {
@@ -183,6 +306,5 @@ namespace FrostedGlass
 
             SetAttribute(_Hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, static_cast<int>(_Mode));
         }
-
     }
 }
